@@ -5,6 +5,7 @@ from typing import Any
 
 from enzyme_miner.storage.paper_store import PaperMetadata
 from enzyme_miner.storage.sqlite_writer import write_sqlite
+from enzyme_miner.storage.flatten import flatten_keys, flatten_record
 
 
 def write_outputs(output_dir: pathlib.Path, papers: list[PaperMetadata], records: list[dict[str, Any]]) -> None:
@@ -41,31 +42,10 @@ def write_outputs(output_dir: pathlib.Path, papers: list[PaperMetadata], records
     with csv_records_path.open("w", newline="", encoding="utf-8") as handle:
         if not records:
             return
-        writer = csv.DictWriter(handle, fieldnames=_flatten_keys(records[0]))
+        writer = csv.DictWriter(handle, fieldnames=flatten_keys(records[0]))
         writer.writeheader()
         for record in records:
-            writer.writerow(_flatten_record(record))
+            writer.writerow(flatten_record(record))
 
     write_sqlite(output_dir / "records.sqlite", records)
 
-
-def _flatten_keys(record: dict[str, Any]) -> list[str]:
-    keys = []
-    for section, values in record.items():
-        if isinstance(values, dict):
-            for key in values.keys():
-                keys.append(f"{section}.{key}")
-        else:
-            keys.append(section)
-    return keys
-
-
-def _flatten_record(record: dict[str, Any]) -> dict[str, Any]:
-    flattened: dict[str, Any] = {}
-    for section, values in record.items():
-        if isinstance(values, dict):
-            for key, value in values.items():
-                flattened[f"{section}.{key}"] = value
-        else:
-            flattened[section] = values
-    return flattened

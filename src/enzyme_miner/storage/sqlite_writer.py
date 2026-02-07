@@ -3,7 +3,7 @@ import pathlib
 import sqlite3
 from typing import Any
 
-from enzyme_miner.storage.writer import _flatten_record
+from enzyme_miner.storage.flatten import flatten_record
 
 
 def write_sqlite(db_path: pathlib.Path, records: list[dict[str, Any]]) -> None:
@@ -27,7 +27,7 @@ def write_sqlite(db_path: pathlib.Path, records: list[dict[str, Any]]) -> None:
         )
         for record in records:
             conn.execute("INSERT INTO records (record_json) VALUES (?)", (json.dumps(record, ensure_ascii=False),))
-            conn.execute("INSERT INTO records_flat (data_json) VALUES (?)", (json.dumps(_flatten_record(record), ensure_ascii=False),))
+            conn.execute("INSERT INTO records_flat (data_json) VALUES (?)", (json.dumps(flatten_record(record), ensure_ascii=False),))
         conn.commit()
     finally:
         conn.close()
