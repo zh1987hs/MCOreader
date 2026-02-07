@@ -37,9 +37,10 @@ class OnlineRetriever:
                 if paper.doi and email:
                     oa_info = self._fetch_unpaywall(paper.doi, email)
                     paper.open_access = oa_info.get("is_oa")
-                    paper.url = oa_info.get("best_oa_location", {}).get("url") or paper.url
+                    best_location = oa_info.get("best_oa_location") or {}
+                    paper.url = best_location.get("url") or paper.url
                     paper.fulltext_source = "unpaywall" if paper.open_access else "none"
-                    pdf_url = oa_info.get("best_oa_location", {}).get("url_for_pdf")
+                    pdf_url = best_location.get("url_for_pdf")
                     if pdf_url:
                         pdf_path = self._download_file(pdf_url, download_dir, suffix=".pdf")
                         if pdf_path:
@@ -55,9 +56,10 @@ class OnlineRetriever:
                 if paper.doi and email:
                     oa_info = self._fetch_unpaywall(paper.doi, email)
                     paper.open_access = oa_info.get("is_oa")
-                    paper.url = oa_info.get("best_oa_location", {}).get("url") or paper.url
+                    best_location = oa_info.get("best_oa_location") or {}
+                    paper.url = best_location.get("url") or paper.url
                     paper.fulltext_source = "unpaywall" if paper.open_access else "none"
-                    pdf_url = oa_info.get("best_oa_location", {}).get("url_for_pdf")
+                    pdf_url = best_location.get("url_for_pdf")
                     if pdf_url:
                         pdf_path = self._download_file(pdf_url, download_dir, suffix=".pdf")
                         if pdf_path:
