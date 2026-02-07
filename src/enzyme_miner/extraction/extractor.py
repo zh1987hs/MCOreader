@@ -99,10 +99,10 @@ def extract_records(
         )
         prompt_template = pathlib.Path(
             config.get("extract_prompt_path", "src/enzyme_miner/extraction/prompts/extract_prompt.txt")
-        ).read_text()
+        ).read_text(encoding="utf-8")
         repair_template = pathlib.Path(
             config.get("repair_prompt_path", "src/enzyme_miner/extraction/prompts/repair_prompt.txt")
-        ).read_text()
+        ).read_text(encoding="utf-8")
         for chunk in chunks:
             prompt_input = _build_prompt_input(chunk, substrate_dict, config, paper_lookup)
             prompt = prompt_template.replace("-----BEGIN_EXTRACT_PROMPT-----\n", "").replace(
