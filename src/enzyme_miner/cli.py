@@ -51,19 +51,34 @@ def run_from_config_dict(config: dict, config_path: pathlib.Path | None = None) 
         query = [query]
 
     retriever = OnlineRetriever(online_cfg)
+    LOGGER.info("Stage 1/6: online retrieval starting")
     papers, downloads = retriever.search_and_fetch(query)
+    LOGGER.info("Stage 1/6: online retrieval complete (papers=%s, downloads=%s)", len(papers), len(downloads))
 
+    LOGGER.info("Stage 2/6: local + downloaded document loading")
     documents = load_documents(local_paths + downloads)
+    LOGGER.info("Stage 2/6: document loading complete (documents=%s)", len(documents))
+
+    LOGGER.info("Stage 3/6: chunking documents")
     chunks = chunk_documents(documents)
+    LOGGER.info("Stage 3/6: chunking complete (chunks=%s)", len(chunks))
+
+    LOGGER.info("Stage 4/6: candidate filtering")
     candidates = find_candidates(chunks)
+    LOGGER.info("Stage 4/6: candidate filtering complete (candidates=%s)", len(candidates))
 
     extraction_config = config.get("llm", {})
     paper_lookup = {paper.file_path: paper for paper in papers if paper.file_path}
+    LOGGER.info("Stage 5/6: extraction starting (llm=%s)", bool(extraction_config.get("enable", False)))
     records = extract_records(candidates, extraction_config, paper_lookup)
+    LOGGER.info("Stage 5/6: extraction complete (records=%s)", len(records))
     merged_records = deduplicate_records(records)
+    LOGGER.info("Stage 5/6: deduplication complete (records=%s)", len(merged_records))
 
+    LOGGER.info("Stage 6/6: writing outputs")
     write_outputs(output_dir, papers, merged_records)
     report_path = build_report(output_dir, papers, merged_records)
+    LOGGER.info("Stage 6/6: outputs written (report=%s)", report_path)
 
     run_meta = {
         "run_timestamp": datetime.utcnow().isoformat(),

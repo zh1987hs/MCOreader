@@ -30,9 +30,12 @@ class OnlineRetriever:
         papers: list[PaperMetadata] = []
         downloads: list[pathlib.Path] = []
 
-        for query in queries:
+        total_queries = len(queries)
+        for idx, query in enumerate(queries, start=1):
+            LOGGER.info("Online retrieval %s/%s: query=%s", idx, total_queries, query)
             LOGGER.info("Searching Crossref for query: %s", query)
             crossref_papers = self._search_crossref(query, max_papers)
+            LOGGER.info("Crossref returned %s records", len(crossref_papers))
             for paper in crossref_papers:
                 if paper.doi and email:
                     oa_info = self._fetch_unpaywall(paper.doi, email)
@@ -51,7 +54,9 @@ class OnlineRetriever:
 
             LOGGER.info("Searching PubMed for query: %s", query)
             pmids = search_pubmed(query, max_papers=max_papers)
+            LOGGER.info("PubMed returned %s PMIDs", len(pmids))
             pm_papers = fetch_pubmed_metadata(pmids)
+            LOGGER.info("PubMed metadata fetched for %s records", len(pm_papers))
             for paper in pm_papers:
                 if paper.doi and email:
                     oa_info = self._fetch_unpaywall(paper.doi, email)
@@ -70,6 +75,7 @@ class OnlineRetriever:
 
         for paper in papers:
             if paper.pmcid:
+                LOGGER.info("Fetching PMC XML for %s", paper.pmcid)
                 xml_path = fetch_pmc_xml(paper.pmcid, download_dir)
                 if xml_path:
                     paper.fulltext_source = "pmc"
