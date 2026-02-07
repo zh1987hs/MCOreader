@@ -1,0 +1,11 @@
+-----BEGIN_REPAIR_PROMPT-----
+你将收到两个输入：
+- bad_json: 之前生成但无法解析或不符合 schema 的 JSON 文本
+- schema_hint: 我需要的字段与类型要求
+
+任务：仅对 bad_json 做最小修改以满足 schema 与可解析 JSON。
+硬规则：
+1) 不允许添加任何来自原文之外的新事实或新数值；不允许“补全”缺失数据。
+2) 只能做：补齐缺失 key、把明显的字符串数字转为 number、修正引号/逗号/括号、把 records 设为数组、把无法确定的字段置 null，并在 warnings 里说明。
+3) 只输出修复后的 JSON（{"records":[...]}），不要输出解释。
+-----END_REPAIR_PROMPT-----
