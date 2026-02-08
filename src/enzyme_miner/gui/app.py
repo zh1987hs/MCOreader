@@ -39,6 +39,7 @@ with st.sidebar:
     api_base = st.text_input("API Base", "https://api.openai.com/v1")
     api_key_header = st.text_input("API Key Header", "Authorization")
     api_key_prefix = st.text_input("API Key Prefix", "Bearer")
+    response_json_path = st.text_input("Response JSON Path", "choices.0.message.content")
     temperature = st.number_input("Temperature", min_value=0.0, max_value=2.0, value=0.0)
     max_tokens = st.number_input("Max tokens", min_value=256, max_value=8192, value=1200)
     enzyme_family = st.text_input("Enzyme family", "multicopper oxidase")
@@ -66,6 +67,7 @@ config = {
         "api_base": api_base,
         "api_key_header": api_key_header,
         "api_key_prefix": api_key_prefix,
+        "response_json_path": response_json_path or None,
         "temperature": float(temperature),
         "max_tokens": int(max_tokens),
         "extract_prompt_path": "src/enzyme_miner/extraction/prompts/extract_prompt.txt",
