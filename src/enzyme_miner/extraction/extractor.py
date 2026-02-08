@@ -96,6 +96,7 @@ def extract_records(
             api_base=config.get("api_base"),
             api_key_header=config.get("api_key_header", "Authorization"),
             api_key_prefix=config.get("api_key_prefix", "Bearer"),
+            response_json_path=config.get("response_json_path"),
         )
         prompt_template = pathlib.Path(
             config.get("extract_prompt_path", "src/enzyme_miner/extraction/prompts/extract_prompt.txt")
@@ -204,9 +205,8 @@ def _build_prompt_input(
 
 
 def _parse_llm_output(raw: str, repair_template: str, llm_config: LLMConfig) -> list[dict[str, Any]]:
-    try:
-        data = json.loads(raw)
-    except json.JSONDecodeError:
+    data = _safe_json_load(raw, llm_config)
+    if data is None:
         payload = {
             "bad_json": raw,
             "schema_hint": RECORD_SCHEMA,
@@ -216,11 +216,34 @@ def _parse_llm_output(raw: str, repair_template: str, llm_config: LLMConfig) -> 
         )
         prompt = f"{prompt}\n\nINPUT_JSON:\n{json.dumps(payload, ensure_ascii=False)}"
         repaired = call_llm(prompt, llm_config)
-        data = json.loads(repaired)
+        data = _safe_json_load(repaired, llm_config)
+        if data is None:
+            raise ValidationError("LLM output could not be parsed as JSON after repair")
     records = data.get("records", []) if isinstance(data, dict) else []
     if not isinstance(records, list):
         raise ValidationError("records must be a list")
     return records
+
+
+def _safe_json_load(text: str, llm_config: LLMConfig) -> dict[str, Any] | None:
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        cleaned = _extract_json_from_text(text)
+        if cleaned:
+            try:
+                return json.loads(cleaned)
+            except json.JSONDecodeError:
+                return None
+    return None
+
+
+def _extract_json_from_text(text: str) -> str | None:
+    start = text.find("{")
+    end = text.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        return None
+    return text[start : end + 1]
 
 
 def save_prompt_inputs(path: str, payload: dict[str, Any]) -> None:

@@ -19,6 +19,7 @@ class LLMConfig:
     api_base: str | None = None
     api_key_header: str = "Authorization"
     api_key_prefix: str = "Bearer"
+    response_json_path: str | None = None
 
 
 def call_openai(prompt: str, config: LLMConfig) -> str:
@@ -39,7 +40,22 @@ def call_openai(prompt: str, config: LLMConfig) -> str:
     response = requests.post(f"{api_base}/chat/completions", headers=headers, data=json.dumps(payload), timeout=60)
     response.raise_for_status()
     data = response.json()
-    return data["choices"][0]["message"]["content"]
+    content = data["choices"][0]["message"]["content"]
+    if config.response_json_path:
+        return _extract_json_path(data, config.response_json_path)
+    return content
+
+
+def _extract_json_path(data: dict[str, Any], path: str) -> str:
+    current: Any = data
+    for part in path.split("."):
+        if part.isdigit():
+            current = current[int(part)]
+        else:
+            current = current[part]
+    if isinstance(current, (dict, list)):
+        return json.dumps(current, ensure_ascii=False)
+    return str(current)
 
 
 def call_llm(prompt: str, config: LLMConfig) -> str:

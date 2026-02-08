@@ -78,6 +78,7 @@ See `config.example.yaml` for:
 - `online.unpaywall_email`: required for Unpaywall
 - `online.download_dir`: cache path for OA PDF/PMC XML
 - `llm`: enable LLM extraction + API configuration (supports OpenAI-compatible endpoints)
+  - `llm.response_json_path`: optional JSON path to extract content from API response (e.g. `choices.0.message.content`)
 
 ## Outputs
 
