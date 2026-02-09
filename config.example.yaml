@@ -6,6 +6,11 @@ years:
   end: 2024
 local_paths:
   - "./data/local_papers"
+local_scan:
+  enable: false
+  paths:
+    - "./data/downloads"
+  extensions: [".pdf", ".docx", ".html", ".htm", ".txt"]
 max_papers: 5
 output_dir: "./data/output_demo"
 log_dir: "./logs"

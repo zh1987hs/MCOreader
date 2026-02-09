@@ -32,6 +32,8 @@ with st.sidebar:
         type=["pdf", "docx", "html", "htm", "txt"],
         accept_multiple_files=True,
     )
+    scan_enable = st.checkbox("Auto-scan local folders", value=False)
+    scan_paths = st.text_area("Scan paths (one per line)", "./data/downloads")
 
     st.header("Output")
     output_dir = st.text_input("Output dir", "./data/output_demo")
@@ -77,6 +79,10 @@ config = {
         "unpaywall_email": unpaywall_email,
         "download_dir": download_dir,
         "rate_limit_s": float(rate_limit_s),
+    },
+    "local_scan": {
+        "enable": scan_enable,
+        "paths": [p.strip() for p in scan_paths.splitlines() if p.strip()],
     },
     "llm": {
         "enable": llm_enable,

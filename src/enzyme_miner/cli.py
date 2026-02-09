@@ -7,6 +7,7 @@ import yaml
 
 from enzyme_miner.ingestion.online import OnlineRetriever
 from enzyme_miner.parsing.loader import load_documents
+from enzyme_miner.parsing.local_scan import scan_local_folders
 from enzyme_miner.chunking.chunker import chunk_documents
 from enzyme_miner.candidate_finder.candidates import find_candidates
 from enzyme_miner.extraction.extractor import extract_records
@@ -45,6 +46,7 @@ def run_from_config_dict(config: dict, config_path: pathlib.Path | None = None) 
         LOGGER.info("Loaded config from dict")
 
     online_cfg = config.get("online", {})
+    local_scan_cfg = config.get("local_scan", {})
     local_paths = [pathlib.Path(p) for p in config.get("local_paths", [])]
     query = config.get("query", [])
     if isinstance(query, str):
@@ -55,8 +57,16 @@ def run_from_config_dict(config: dict, config_path: pathlib.Path | None = None) 
     papers, downloads = retriever.search_and_fetch(query)
     LOGGER.info("Stage 1/6: online retrieval complete (papers=%s, downloads=%s)", len(papers), len(downloads))
 
+    scan_enabled = bool(local_scan_cfg.get("enable", False))
+    scan_paths = [pathlib.Path(p) for p in local_scan_cfg.get("paths", [])]
+    scan_exts = local_scan_cfg.get("extensions")
+    scanned_files: list[pathlib.Path] = []
+    if scan_enabled and scan_paths:
+        scanned_files = scan_local_folders(scan_paths, extensions=scan_exts)
+        LOGGER.info("Local scan enabled (paths=%s, files=%s)", len(scan_paths), len(scanned_files))
+
     LOGGER.info("Stage 2/6: local + downloaded document loading")
-    documents = load_documents(local_paths + downloads)
+    documents = load_documents(local_paths + downloads + scanned_files)
     LOGGER.info("Stage 2/6: document loading complete (documents=%s)", len(documents))
 
     LOGGER.info("Stage 3/6: chunking documents")
