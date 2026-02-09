@@ -26,6 +26,12 @@ with st.sidebar:
 
     st.header("Local Paths")
     local_paths = st.text_area("Local paths (one per line)", "./data/local_papers")
+    upload_dir = st.text_input("Upload dir", "./data/uploads")
+    uploaded_files = st.file_uploader(
+        "Upload local files (PDF/DOCX/HTML/TXT)",
+        type=["pdf", "docx", "html", "htm", "txt"],
+        accept_multiple_files=True,
+    )
 
     st.header("Output")
     output_dir = st.text_input("Output dir", "./data/output_demo")
@@ -49,9 +55,20 @@ with st.sidebar:
     substrate_dictionary = st.text_input("Substrate dictionary path", "./substrate_dictionary.yaml")
 
 st.subheader("Run Configuration")
+local_path_list = [p.strip() for p in local_paths.splitlines() if p.strip()]
+if uploaded_files:
+    upload_path = pathlib.Path(upload_dir)
+    upload_path.mkdir(parents=True, exist_ok=True)
+    saved_files = []
+    for uploaded in uploaded_files:
+        target = upload_path / uploaded.name
+        target.write_bytes(uploaded.getbuffer())
+        saved_files.append(str(target))
+    local_path_list.extend(saved_files)
+
 config = {
     "query": [q.strip() for q in query.splitlines() if q.strip()],
-    "local_paths": [p.strip() for p in local_paths.splitlines() if p.strip()],
+    "local_paths": local_path_list,
     "max_papers": int(max_papers),
     "output_dir": output_dir,
     "log_dir": log_dir,

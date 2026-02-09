@@ -14,6 +14,11 @@ LOGGER = logging.getLogger(__name__)
 
 CROSSREF_API = "https://api.crossref.org/works"
 UNPAYWALL_API = "https://api.unpaywall.org/v2"
+DEFAULT_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/122.0.0.0 Safari/537.36"
+)
 
 
 @dataclass
@@ -120,7 +125,8 @@ class OnlineRetriever:
 
     def _download_file(self, url: str, download_dir: pathlib.Path, suffix: str) -> pathlib.Path | None:
         try:
-            response = requests.get(url, timeout=60)
+            headers = {"User-Agent": DEFAULT_USER_AGENT, "Accept": "*/*"}
+            response = requests.get(url, headers=headers, timeout=60)
             response.raise_for_status()
         except requests.RequestException as exc:
             LOGGER.warning("Failed to download %s: %s", url, exc)
