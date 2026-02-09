@@ -126,7 +126,7 @@ def extract_records(
                 warning_record["evidence"]["evidence_text"] = chunk.text[:300]
                 warning_record["evidence"]["location_hint"] = chunk.location_hint
                 warning_record["evidence"]["confidence"] = 0.1
-                warning_record["extraction_meta"]["warnings"] = [f\"llm_parse_failed: {exc}\"]
+                warning_record["extraction_meta"]["warnings"] = [f"llm_parse_failed: {exc}"]
                 warning_record["extraction_meta"]["needs_human_review"] = True
                 records.append(warning_record)
         return records
