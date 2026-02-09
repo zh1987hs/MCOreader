@@ -1,0 +1,10 @@
+requests>=2.31.0
+pyyaml>=6.0.1
+jsonschema>=4.19.0
+beautifulsoup4>=4.12.2
+lxml>=4.9.3
+python-docx>=0.8.11
+pdfminer.six>=20221105
+pymupdf>=1.23.5
+rapidfuzz>=3.6.1
+streamlit>=1.32.0

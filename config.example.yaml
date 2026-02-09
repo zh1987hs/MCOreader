@@ -1,0 +1,34 @@
+query:
+  - "multicopper oxidase"
+  - "laccase"
+years:
+  start: 2000
+  end: 2024
+local_paths:
+  - "./data/local_papers"
+max_papers: 5
+output_dir: "./data/output_demo"
+log_dir: "./logs"
+online:
+  max_papers: 5
+  unpaywall_email: "your_email@example.com"
+  download_dir: "./data/raw"
+  rate_limit_s: 1.0
+llm:
+  enable: true
+  provider: "openai"
+  model: "gpt-4o-mini"
+  api_key: null
+  api_base: "https://api.openai.com/v1"
+  api_key_header: "Authorization"
+  api_key_prefix: "Bearer"
+  response_json_path: null
+  response_format: "json_object"
+  tolerate_errors: true
+  temperature: 0
+  max_tokens: 1200
+  extract_prompt_path: "src/enzyme_miner/extraction/prompts/extract_prompt.txt"
+  repair_prompt_path: "src/enzyme_miner/extraction/prompts/repair_prompt.txt"
+  substrate_dictionary: "./substrate_dictionary.yaml"
+  enzyme_family: "multicopper oxidase"
+  gene_names_possible: ["mcoA", "cueO", "mnxG"]
