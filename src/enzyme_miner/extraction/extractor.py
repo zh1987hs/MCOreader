@@ -97,6 +97,7 @@ def extract_records(
             api_key_header=config.get("api_key_header", "Authorization"),
             api_key_prefix=config.get("api_key_prefix", "Bearer"),
             response_json_path=config.get("response_json_path"),
+            response_format=config.get("response_format"),
         )
         prompt_template = pathlib.Path(
             config.get("extract_prompt_path", "src/enzyme_miner/extraction/prompts/extract_prompt.txt")

@@ -79,6 +79,7 @@ See `config.example.yaml` for:
 - `online.download_dir`: cache path for OA PDF/PMC XML
 - `llm`: enable LLM extraction + API configuration (supports OpenAI-compatible endpoints)
   - `llm.response_json_path`: optional JSON path to extract content from API response (e.g. `choices.0.message.content`)
+  - `llm.response_format`: optional response format hint (e.g. `json_object`) for providers that support it
 
 ## Outputs
 

@@ -20,6 +20,7 @@ class LLMConfig:
     api_key_header: str = "Authorization"
     api_key_prefix: str = "Bearer"
     response_json_path: str | None = None
+    response_format: str | None = None
 
 
 def call_openai(prompt: str, config: LLMConfig) -> str:
@@ -36,6 +37,8 @@ def call_openai(prompt: str, config: LLMConfig) -> str:
             {"role": "user", "content": prompt},
         ],
     }
+    if config.response_format:
+        payload["response_format"] = {"type": config.response_format}
     headers = {config.api_key_header: f"{config.api_key_prefix} {api_key}", "Content-Type": "application/json"}
     response = requests.post(f"{api_base}/chat/completions", headers=headers, data=json.dumps(payload), timeout=60)
     response.raise_for_status()
