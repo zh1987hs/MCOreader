@@ -41,6 +41,7 @@ with st.sidebar:
     api_key_prefix = st.text_input("API Key Prefix", "Bearer")
     response_json_path = st.text_input("Response JSON Path", "choices.0.message.content")
     response_format = st.text_input("Response Format (json_object)", "json_object")
+    tolerate_errors = st.checkbox("Tolerate LLM parse errors", value=True)
     temperature = st.number_input("Temperature", min_value=0.0, max_value=2.0, value=0.0)
     max_tokens = st.number_input("Max tokens", min_value=256, max_value=8192, value=1200)
     enzyme_family = st.text_input("Enzyme family", "multicopper oxidase")
@@ -70,6 +71,7 @@ config = {
         "api_key_prefix": api_key_prefix,
         "response_json_path": response_json_path or None,
         "response_format": response_format or None,
+        "tolerate_errors": tolerate_errors,
         "temperature": float(temperature),
         "max_tokens": int(max_tokens),
         "extract_prompt_path": "src/enzyme_miner/extraction/prompts/extract_prompt.txt",

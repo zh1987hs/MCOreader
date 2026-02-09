@@ -85,6 +85,7 @@ def extract_records(
     substrate_dict = load_substrate_dictionary(config.get("substrate_dictionary"))
     records: list[dict[str, Any]] = []
     use_llm = bool(config.get("enable", False))
+    tolerate_errors = bool(config.get("tolerate_errors", False))
 
     if use_llm:
         llm_config = LLMConfig(
@@ -111,12 +112,23 @@ def extract_records(
                 "\n-----END_EXTRACT_PROMPT-----", ""
             )
             prompt = f"{prompt}\n\nINPUT_JSON:\n{json.dumps(prompt_input, ensure_ascii=False)}"
-            raw = call_llm(prompt, llm_config)
-            parsed = _parse_llm_output(raw, repair_template, llm_config)
-            for record in parsed:
-                normalized = _ensure_record_keys(record)
-                validate(instance=normalized, schema=RECORD_SCHEMA)
-                records.append(normalized)
+            try:
+                raw = call_llm(prompt, llm_config)
+                parsed = _parse_llm_output(raw, repair_template, llm_config)
+                for record in parsed:
+                    normalized = _ensure_record_keys(record)
+                    validate(instance=normalized, schema=RECORD_SCHEMA)
+                    records.append(normalized)
+            except ValidationError as exc:
+                if not tolerate_errors:
+                    raise
+                warning_record = _base_record()
+                warning_record["evidence"]["evidence_text"] = chunk.text[:300]
+                warning_record["evidence"]["location_hint"] = chunk.location_hint
+                warning_record["evidence"]["confidence"] = 0.1
+                warning_record["extraction_meta"]["warnings"] = [f\"llm_parse_failed: {exc}\"]
+                warning_record["extraction_meta"]["needs_human_review"] = True
+                records.append(warning_record)
         return records
 
     for chunk in chunks:

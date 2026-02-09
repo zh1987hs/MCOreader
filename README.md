@@ -80,6 +80,7 @@ See `config.example.yaml` for:
 - `llm`: enable LLM extraction + API configuration (supports OpenAI-compatible endpoints)
   - `llm.response_json_path`: optional JSON path to extract content from API response (e.g. `choices.0.message.content`)
   - `llm.response_format`: optional response format hint (e.g. `json_object`) for providers that support it
+  - `llm.tolerate_errors`: continue on LLM parse failures by emitting warning records
 
 ## Outputs
 
