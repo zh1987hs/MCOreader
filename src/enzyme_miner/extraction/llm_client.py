@@ -24,12 +24,13 @@ class LLMConfig:
 
 
 def call_openai(prompt: str, config: LLMConfig) -> str:
+    model = _normalize_model(config.model)
     api_key = config.api_key or os.getenv("OPENAI_API_KEY")
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY is not set")
     api_base = config.api_base or "https://api.openai.com/v1"
     payload = {
-        "model": config.model,
+        "model": model,
         "temperature": config.temperature,
         "max_tokens": config.max_tokens,
         "messages": [
@@ -47,6 +48,15 @@ def call_openai(prompt: str, config: LLMConfig) -> str:
     if config.response_json_path:
         return _extract_json_path(data, config.response_json_path)
     return content
+
+
+def _normalize_model(model: str) -> str:
+    normalized = model.strip()
+    if normalized.endswith(":"):
+        normalized = normalized.rstrip(":").strip()
+    if normalized != model:
+        LOGGER.warning("Normalized LLM model name from %r to %r.", model, normalized)
+    return normalized
 
 
 def _extract_json_path(data: dict[str, Any], path: str) -> str:
