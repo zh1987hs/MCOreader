@@ -31,4 +31,17 @@ llm:
   repair_prompt_path: "src/enzyme_miner/extraction/prompts/repair_prompt.txt"
   substrate_dictionary: "./substrate_dictionary.yaml"
   enzyme_family: "multicopper oxidase"
-  gene_names_possible: ["mcoA", "cueO", "mnxG"]
+  gene_names_possible:
+    [
+      "mcoA",
+      "cueO",
+      "mnxG",
+      "laccase",
+      "cotA",
+      "mcoB",
+      "mcoC",
+      "mofA",
+      "bilirubin oxidase",
+      "laccase-like",
+      "cueO-like",
+    ]
