@@ -114,8 +114,9 @@ def extract_records(
             raw = call_llm(prompt, llm_config)
             parsed = _parse_llm_output(raw, repair_template, llm_config)
             for record in parsed:
-                validate(instance=record, schema=RECORD_SCHEMA)
-                records.append(record)
+                normalized = _ensure_record_keys(record)
+                validate(instance=normalized, schema=RECORD_SCHEMA)
+                records.append(normalized)
         return records
 
     for chunk in chunks:
@@ -224,6 +225,17 @@ def _parse_llm_output(raw: str, repair_template: str, llm_config: LLMConfig) -> 
     if not isinstance(records, list):
         raise ValidationError("records must be a list")
     return records
+
+
+def _ensure_record_keys(record: dict[str, Any]) -> dict[str, Any]:
+    base = _base_record()
+    merged = base
+    for section, values in record.items():
+        if section in merged and isinstance(values, dict):
+            merged[section].update(values)
+        else:
+            merged[section] = values
+    return merged
 
 
 def _safe_json_load(text: str, llm_config: LLMConfig) -> dict[str, Any] | None:
