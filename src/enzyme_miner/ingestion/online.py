@@ -37,14 +37,16 @@ class OnlineRetriever:
             crossref_papers = self._search_crossref(query, max_papers)
             LOGGER.info("Crossref returned %s records", len(crossref_papers))
             for paper in crossref_papers:
-                if paper.doi and email:
+                if paper.doi and _is_pdb_doi(paper.doi):
+                    LOGGER.info("Skipping PDB DOI %s for fulltext retrieval.", paper.doi)
+                elif paper.doi and email:
                     oa_info = self._fetch_unpaywall(paper.doi, email)
                     paper.open_access = oa_info.get("is_oa")
                     best_location = oa_info.get("best_oa_location") or {}
                     paper.url = best_location.get("url") or paper.url
                     paper.fulltext_source = "unpaywall" if paper.open_access else "none"
                     pdf_url = best_location.get("url_for_pdf")
-                    if pdf_url:
+                    if pdf_url and not _looks_like_pdb_url(pdf_url):
                         pdf_path = self._download_file(pdf_url, download_dir, suffix=".pdf")
                         if pdf_path:
                             paper.file_path = str(pdf_path)
@@ -58,14 +60,16 @@ class OnlineRetriever:
             pm_papers = fetch_pubmed_metadata(pmids)
             LOGGER.info("PubMed metadata fetched for %s records", len(pm_papers))
             for paper in pm_papers:
-                if paper.doi and email:
+                if paper.doi and _is_pdb_doi(paper.doi):
+                    LOGGER.info("Skipping PDB DOI %s for fulltext retrieval.", paper.doi)
+                elif paper.doi and email:
                     oa_info = self._fetch_unpaywall(paper.doi, email)
                     paper.open_access = oa_info.get("is_oa")
                     best_location = oa_info.get("best_oa_location") or {}
                     paper.url = best_location.get("url") or paper.url
                     paper.fulltext_source = "unpaywall" if paper.open_access else "none"
                     pdf_url = best_location.get("url_for_pdf")
-                    if pdf_url:
+                    if pdf_url and not _looks_like_pdb_url(pdf_url):
                         pdf_path = self._download_file(pdf_url, download_dir, suffix=".pdf")
                         if pdf_path:
                             paper.file_path = str(pdf_path)
@@ -127,3 +131,13 @@ class OnlineRetriever:
         path = download_dir / filename
         path.write_bytes(response.content)
         return path
+
+
+def _is_pdb_doi(doi: str) -> bool:
+    normalized = doi.lower().strip()
+    return normalized.startswith("10.2210/pdb") or normalized.endswith("/pdb") or "/pdb" in normalized
+
+
+def _looks_like_pdb_url(url: str) -> bool:
+    normalized = url.lower()
+    return normalized.endswith(".pdb") or "/pdb/" in normalized or "/pdb?" in normalized
