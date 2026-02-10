@@ -13,8 +13,9 @@ from enzyme_miner.normalization.substrate import load_substrate_dictionary, norm
 from enzyme_miner.normalization.units import normalize_value
 
 PARAM_PATTERN = re.compile(
-    r"(?P<param>kcat\/km|kcat\/km|kcat|km|vmax|specific activity|relative activity|rate)"
-    r"\s*[:=]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>[A-Za-zµ/\-\^0-9]+)",
+    r"(?P<param>kcat\s*/\s*km|kcat\/km|kcat|km|vmax|specific activity|relative activity|rate)"
+    r"\s*[:=]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)"
+    r"(?:\s*(?P<unit>[A-Za-zµ/%\-\^0-9]+(?:\s*[A-Za-zµ/%\-\^0-9]+)*))?",
     re.IGNORECASE,
 )
 QUALITATIVE_PATTERN = re.compile(r"oxidize|oxidation|activity|active toward", re.IGNORECASE)
@@ -148,27 +149,28 @@ def extract_records(
                 }.get(param_raw, "rate")
                 value = float(match.group("value"))
                 unit_raw = match.group("unit")
-                substrate_raw = substrates[0] if substrates else None
-                normalized_substrate = normalize_substrate(substrate_raw, substrate_dict)
-                normalized_value = normalize_value(parameter_type, value, unit_raw)
+                candidate_substrates = substrates or [None]
+                for substrate_raw in candidate_substrates:
+                    normalized_substrate = normalize_substrate(substrate_raw, substrate_dict)
+                    normalized_value = normalize_value(parameter_type, value, unit_raw)
 
-                record = _base_record()
-                record["assay_context"]["substrate_name_raw"] = substrate_raw
-                record["assay_context"]["substrate_name_normalized"] = normalized_substrate.normalized
-                record["assay_context"]["substrate_category"] = normalized_substrate.category
-                record["kinetic_or_activity"]["parameter_type"] = parameter_type
-                record["kinetic_or_activity"]["value"] = value
-                record["kinetic_or_activity"]["unit_raw"] = unit_raw
-                record["kinetic_or_activity"]["value_normalized"] = normalized_value.value
-                record["kinetic_or_activity"]["unit_normalized"] = normalized_value.unit_normalized
-                record["evidence"]["evidence_text"] = chunk.text[:300]
-                record["evidence"]["location_hint"] = chunk.location_hint
-                record["evidence"]["confidence"] = 0.7
-                warnings = normalized_substrate.warnings + normalized_value.warnings
-                record["extraction_meta"]["warnings"] = warnings
-                record["extraction_meta"]["needs_human_review"] = bool(warnings)
-                validate(instance=record, schema=RECORD_SCHEMA)
-                records.append(record)
+                    record = _base_record()
+                    record["assay_context"]["substrate_name_raw"] = substrate_raw
+                    record["assay_context"]["substrate_name_normalized"] = normalized_substrate.normalized
+                    record["assay_context"]["substrate_category"] = normalized_substrate.category
+                    record["kinetic_or_activity"]["parameter_type"] = parameter_type
+                    record["kinetic_or_activity"]["value"] = value
+                    record["kinetic_or_activity"]["unit_raw"] = unit_raw
+                    record["kinetic_or_activity"]["value_normalized"] = normalized_value.value
+                    record["kinetic_or_activity"]["unit_normalized"] = normalized_value.unit_normalized
+                    record["evidence"]["evidence_text"] = chunk.text[:300]
+                    record["evidence"]["location_hint"] = chunk.location_hint
+                    record["evidence"]["confidence"] = 0.7
+                    warnings = normalized_substrate.warnings + normalized_value.warnings
+                    record["extraction_meta"]["warnings"] = warnings
+                    record["extraction_meta"]["needs_human_review"] = bool(warnings)
+                    validate(instance=record, schema=RECORD_SCHEMA)
+                    records.append(record)
         elif QUALITATIVE_PATTERN.search(chunk.text) and substrates:
             for substrate_raw in substrates:
                 normalized_substrate = normalize_substrate(substrate_raw, substrate_dict)
