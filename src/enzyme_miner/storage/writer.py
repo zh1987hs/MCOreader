@@ -3,6 +3,8 @@ import json
 import pathlib
 from typing import Any
 
+from openpyxl import Workbook
+
 from enzyme_miner.storage.paper_store import PaperMetadata
 from enzyme_miner.storage.sqlite_writer import write_sqlite
 from enzyme_miner.storage.flatten import flatten_keys, flatten_record
@@ -12,6 +14,7 @@ def write_outputs(output_dir: pathlib.Path, papers: list[PaperMetadata], records
     papers_path = output_dir / "papers.csv"
     records_path = output_dir / "records.jsonl"
     csv_records_path = output_dir / "records.csv"
+    missing_path = output_dir / "missing_fulltext.xlsx"
 
     with papers_path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(
@@ -34,6 +37,8 @@ def write_outputs(output_dir: pathlib.Path, papers: list[PaperMetadata], records
         for paper in papers:
             writer.writerow(paper.__dict__)
 
+    _write_missing_fulltext_excel(missing_path, papers)
+
     with records_path.open("w", encoding="utf-8") as handle:
         for record in records:
             handle.write(json.dumps(record, ensure_ascii=False))
@@ -49,3 +54,16 @@ def write_outputs(output_dir: pathlib.Path, papers: list[PaperMetadata], records
 
     write_sqlite(output_dir / "records.sqlite", records)
 
+
+def _write_missing_fulltext_excel(path: pathlib.Path, papers: list[PaperMetadata]) -> None:
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "missing_fulltext"
+    sheet.append(["title", "journal", "doi", "year", "url"])
+    for paper in papers:
+        if paper.file_path:
+            continue
+        if not (paper.title or paper.doi):
+            continue
+        sheet.append([paper.title, paper.journal, paper.doi, paper.year, paper.url])
+    workbook.save(path)
