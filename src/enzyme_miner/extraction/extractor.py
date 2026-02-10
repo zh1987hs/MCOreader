@@ -17,7 +17,6 @@ PARAM_PATTERN = re.compile(
     r"\s*[:=]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>[A-Za-zµ/\-\^0-9]+)",
     re.IGNORECASE,
 )
-SUBSTRATE_PATTERN = re.compile(r"\b(ABTS|2,6-DMP|SGZ|syringaldazine|guaiacol|catechol|bilirubin|Mn\(II\)|Fe\(II\)|PPD)\b", re.IGNORECASE)
 QUALITATIVE_PATTERN = re.compile(r"oxidize|oxidation|activity|active toward", re.IGNORECASE)
 
 
@@ -83,6 +82,7 @@ def extract_records(
     paper_lookup: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     substrate_dict = load_substrate_dictionary(config.get("substrate_dictionary"))
+    substrate_pattern = _build_substrate_pattern(substrate_dict)
     records: list[dict[str, Any]] = []
     use_llm = bool(config.get("enable", False))
     tolerate_errors = bool(config.get("tolerate_errors", False))
@@ -133,7 +133,7 @@ def extract_records(
 
     for chunk in chunks:
         matches = list(PARAM_PATTERN.finditer(chunk.text))
-        substrates = [m.group(0) for m in SUBSTRATE_PATTERN.finditer(chunk.text)]
+        substrates = [m.group(0) for m in substrate_pattern.finditer(chunk.text)]
         if matches:
             for match in matches:
                 param_raw = match.group("param").lower()
@@ -187,6 +187,20 @@ def extract_records(
                 validate(instance=record, schema=RECORD_SCHEMA)
                 records.append(record)
     return records
+
+
+def _build_substrate_pattern(substrate_dict: dict[str, Any]) -> re.Pattern:
+    synonyms: set[str] = set()
+    for normalized, entry in substrate_dict.items():
+        if isinstance(normalized, str):
+            synonyms.add(normalized)
+        for syn in entry.get("synonyms", []):
+            if isinstance(syn, str):
+                synonyms.add(syn)
+    escaped = sorted((re.escape(s) for s in synonyms if s), key=len, reverse=True)
+    if not escaped:
+        return re.compile(r"$^")
+    return re.compile("|".join(escaped), re.IGNORECASE)
 
 
 def _build_prompt_input(
