@@ -1,0 +1,3 @@
+paper_id,doi,title,journal,year,url,open_access,fulltext_source,abstract,file_path,pmcid
+paper-demo-1,10.0000/demo1,"Example MCO study","Demo Journal",2021,https://example.org/demo1,True,local,"Abstract placeholder",/workspace/MCOreader/data/local_papers/demo1.pdf,PMC0000001
+paper-demo-2,10.0000/demo2,"Example laccase study","Demo Journal",2022,https://example.org/demo2,False,none,"Abstract placeholder",,,
