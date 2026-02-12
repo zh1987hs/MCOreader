@@ -45,10 +45,34 @@ python -m enzyme_miner --config config.example.yaml
 使用 Streamlit 启动图形界面：
 
 ```bash
-streamlit run -m enzyme_miner.gui
+python -m streamlit run src/enzyme_miner/gui/app.py
 ```
 
 GUI 中可填写检索关键词、下载目录、输出目录、模型 API 等参数，并点击 “Run Pipeline” 启动完整流程。
+
+## Windows 快速运行（推荐）
+
+仓库根目录提供了 `run_gui_windows.bat`，会自动：
+- 创建 `.venv` 虚拟环境（若不存在）
+- 安装 `requirements.txt` 依赖
+- 启动 GUI
+
+双击或在 PowerShell 中运行：
+
+```powershell
+cd D:\MCOreader
+run_gui_windows.bat
+```
+
+如果你使用命令行手动运行，推荐步骤：
+
+```powershell
+cd D:\MCOreader
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python -m streamlit run src\enzyme_miner\gui\app.py
+```
 
 ## 中文使用说明（在线检索 + LLM 抽取）
 
